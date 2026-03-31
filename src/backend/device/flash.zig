@@ -10,6 +10,7 @@ const Allocator = mem.Allocator;
 const readInt = mem.readInt;
 
 
+
 const UNKNOWN_PROTOCOL_ID: u8       = 0x000;
 const EMMC_PROTOCOL_ID: u8          = 0x001;
 const UFS_PROTOCOL_ID: u8           = 0x030;
