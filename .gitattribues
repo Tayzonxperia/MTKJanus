@@ -1,0 +1,14 @@
+# Force correct line endings
+* text=auto
+*.sh text eol=lf
+*.bat text eol=crlf
+
+# Set language stats
+*.zig linguist-language=Zig
+
+# Protect binary blobs
+assets merge=ours
+
+*.bin binary
+*.img binary
+*.simg binary

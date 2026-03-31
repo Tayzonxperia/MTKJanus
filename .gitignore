@@ -1,0 +1,34 @@
+# Zig directories
+zig-out
+.zig-cache
+
+# Stuff that tooling could create
+tools/*.bin
+tools/*.sig
+tools/*.img
+tools/*.simg
+tools/*.tmp
+tools/*.log
+
+# Junk
+*.swp
+*.vscode
+*.idea
+*.log
+*.tmp
+*.bak
+*.pdb
+*.o
+*.a
+*.so
+*.dll
+*.lib
+*.dylib
+
+# Misc (If we ever make this a thing)
+.janus.state
+
+# Developer
+ORIGINAL
+TEST
+EXPR

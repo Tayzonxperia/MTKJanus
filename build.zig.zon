@@ -1,0 +1,23 @@
+.{
+    .name = .MTKJanus,
+    .version = "0.0.0",
+    .fingerprint = 0x2d6ba4cfbc9f627e,
+    .minimum_zig_version = "0.15.2",
+
+    .dependencies = .{
+        .libusb = .{
+            .url = "git+https://github.com/allyourcodebase/libusb/?ref=HEAD#363c73885e5b04384bd4702605c613e67da45797",
+            .hash = "libusb-0.0.1-P02YQmeOFwBE3lScFnBmBaOrz-EKAMHX3r9YIDh7ZSul",
+        },
+    },
+
+    .paths = .{
+        "src",
+        "tools",
+        "assets",
+        "build.zig",
+        "build.zig.zon",
+        "LICENSE",
+        "README.md",
+    },
+}
