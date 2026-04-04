@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2025-2026 Taylor (Wakana Kisarazu)
-// Derived from: https://github.com/shomykohai/penumbra/blob/main/core/src/core/storage/gpt.rs
+// Derived from: https://github.com/shomykohai/penumbra/blob/main/core/src/core/storage/
+const root = @This();
 const std = @import("std");
 
 const mem = std.mem;
@@ -9,14 +10,13 @@ const Allocator = mem.Allocator;
 const hash = std.hash;
 const Crc32 = hash.Crc32;
 
+const Common = @import("Common");
+const errors = Common.errors.Device;
+
 
 
 const PART_SIGNATURE: [8]u8 = "EFI PART";
 
-/// A error union for the GPT subsystem
-pub const Error = error
-{   
-};
 
 /// A enum representing the GPT table kind
 pub const Kind = enum 

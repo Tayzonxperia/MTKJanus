@@ -3,12 +3,10 @@
 const std = @import("std");
 const print = std.debug.print;
 
-const dev = @import("device");
 
+
+extern fn testing() void;
 pub fn main() !void
-{  
-    const x = try dev.flash.Emmc.Metadata.init("iosiuf");
-    _ = x;
-
-    print("Hello", .{});
+{
+    testing();
 }

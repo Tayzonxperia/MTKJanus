@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2025-2026 Taylor (Wakana Kisarazu)
-// Derived from: https://github.com/shomykohai/penumbra/blob/main/core/src/core/storage/emmc.rs
-// Derived from: https://github.com/shomykohai/penumbra/blob/main/core/src/core/storage/ufs.rs
+// Derived from: https://github.com/shomykohai/penumbra/blob/main/core/src/core/storage
 const root = @This();
 const std = @import("std");
 
 const mem = std.mem;
-const Allocator = mem.Allocator;
 const readInt = mem.readInt;
+
+const Common = @import("Common");
+const errors = Common.errors.Device;
 
 
 
@@ -45,11 +46,6 @@ pub const Kind = enum
 /// A tagged union representing the flash memory metadata.
 pub const Metadata = union(enum)
 {
-    pub const Error = error {
-        ResponseTooLong,
-        ResponseTooShort,
-    };
-
     none:   void,
     emmc:   Emmc.Metadata,
     ufs:    Ufs.Metadata,
@@ -57,8 +53,8 @@ pub const Metadata = union(enum)
     pub fn kind(self: @This()) Kind {
         return switch (self) {
             .none   => .unknown,
-            .emmc   => .emmc,
-            .ufs    => .ufs
+            .emmc   => |meta| meta,
+            .ufs    => |meta| meta,
         };
     }
 };
@@ -70,11 +66,11 @@ pub const Partition = union(enum)
     emmc:   Emmc.Partition,
     ufs:    Ufs.Partition,
 
-    pub fn kind(self: @This()) Kind {
+    pub fn kind(self: @This()) []const u8 {
         return switch (self) {
-            .none   => .unknown,
-            .emmc   => .emmc,
-            .ufs    => .ufs
+            .none   => "unknown",
+            .emmc   => |part| part.toSlice(),
+            .ufs    => |part| part.toSlice(),
         };
     }
 };
@@ -111,8 +107,8 @@ pub const Emmc = struct
         cid:            [16]u8,
 
         /// Returns the struct initzalized, or a error
-        pub fn init(data: []const u8) root.Metadata.Error!@This() {
-            if (data.len < 96) { return .ResponseTooShort; }
+        pub fn init(data: []const u8) errors.Flash!@This() {
+            if (data.len < 96) { return errors.Flash.ResponseTooShort; }
 
             return .{
                 .boot1_size = readInt(u64, data[8..16], .little),
@@ -164,20 +160,14 @@ pub const Emmc = struct
         /// Represents the `boot1` and `boot2` partition together
         bothpreloader   = 9,
 
-        pub fn toSlice(self: @This()) []const u8 {
-            return switch (self) {
-                .unknown        => "emmc:unknown",
-                .boot1          => "emmc:boot1",
-                .boot2          => "emmc:boot2",
-                .rpmb           => "emmc:rpmb",
-                .gp1            => "emmc:gp1",
-                .gp2            => "emmc:gp2",
-                .gp3            => "emmc:gp3",
-                .gp4            => "emmc:gp4",
-                .user           => "emmc:user",
-                .bothpreloader  => "emmc:bothpreloader",
-            };
-        }
+        const SLICE_FIELDS: [10][]const u8 = [_][]const u8 {
+            "emmc:unknown", "emmc:boot1", "emmc:boot2", "emmc:rpmb", 
+            "emmc:gp1", "emmc:gp2", "emmc:gp3", "emmc:gp4", 
+            "emmc:user", "emmc:bothpreloader" 
+        };
+
+        pub fn toSlice(self: @This()) []const u8 
+        { return SLICE_FIELDS[@intFromEnum(self)]; }
 
         /// Returns the region where the main preloader is stored
         pub fn getPreloaderMain() @This()
@@ -242,8 +232,8 @@ pub const Ufs = struct
         firmware_ver:   [4]u8,
 
         /// Returns the struct initzalized, or a error
-        pub fn init(data: []const u8) root.Metadata.Error!@This() {
-            if (data.len < 168) { return .ResponseTooShort; }
+        pub fn init(data: []const u8) errors.Flash!@This() {
+            if (data.len < 168) { return errors.Flash.ResponseTooShort; }
 
             return .{
                 .lu0_size = readInt(u64, data[8..16], .little),
@@ -297,20 +287,14 @@ pub const Ufs = struct
         /// Represents the `lu0` and `lu1` partition together
         bothpreloader   = 9,
 
-        pub fn toSlice(self: @This()) []const u8 {
-            return switch (self) {
-                .unknown        => "ufs:unknown",
-                .lu0            => "ufs:lu0",
-                .lu1            => "ufs:lu1",
-                .lu2            => "ufs:lu2",
-                .lu3            => "ufs:lu3",
-                .lu4            => "ufs:lu4",
-                .lu5            => "ufs:lu5",
-                .lu6            => "ufs:lu6",
-                .lu7            => "ufs:lu7",
-                .bothpreloader  => "ufs:bothpreloader",
-            };
-        }
+        const SLICE_FIELDS: [10][]const u8 = [_][]const u8 {
+            "ufs:unknown", "ufs:lu0", "ufs:lu1", "ufs:lu2", 
+            "ufs:lu3", "ufs:lu4", "ufs:lu5", "ufs:lu6", 
+            "ufs:lu7", "ufs:bothpreloader" 
+        };
+
+        pub fn toSlice(self: @This()) []const u8 
+        { return SLICE_FIELDS[@intFromEnum(self)]; }
 
         /// Returns the region where the main preloader is stored
         pub fn getPreloaderMain() @This()
@@ -341,18 +325,17 @@ pub const Ufs = struct
     };
 };
 
+/// A enum for representing the RPMB regions
 pub const RpmbRegion = enum(u8)
 {
-    pub const Error = error 
-    { RegionInvalid }; 
-
     unknown = 0,
     r1      = 1,
     r2      = 2,
     r3      = 3,
     r4      = 4,
 
-    pub fn tryFrom(val: u8) @This() {
+    /// Returns the region that corrosponds to the value
+    pub fn fromValue(val: u8) @This() {
         return switch (val) {
             1 => .r1,
             2 => .r2,

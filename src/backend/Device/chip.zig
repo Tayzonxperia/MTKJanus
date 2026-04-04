@@ -1,8 +1,11 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 // Copyright (C) 2025-2026 Taylor (Wakana Kisarazu)
-// Derived from: https://github.com/shomykohai/penumbra/blob/main/core/src/core/chip.rs
+// Derived from: https://github.com/shomykohai/penumbra/blob/main/core/src/core
 const root = @This();
 const std = @import("std");
+
+const Common = @import("Common");
+const errors = Common.errors.Device;
 
 
 

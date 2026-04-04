@@ -7,9 +7,9 @@ const Target = std.Target;
 
 
 
-const BACKEND_PATH = "src/backend/";
-const FRONTEND_PATH = "src/frontend/";
-const DEBUGGER_PATH = "src/debugger/";
+const BACKEND_PATH: *const [12:0]u8     = "src/backend/";
+const FRONTEND_PATH: *const [13:0]u8    = "src/frontend/";
+const DEBUGGER_PATH: *const [13:0]u8    = "src/debugger/";
 
 /// A struct representing the build options
 const OptionData = struct 
@@ -73,16 +73,19 @@ pub fn build(b: *Build) void
     const usb_dep = b.dependency("libusb", .{});
     const usb_lib = usb_dep.artifact("usb");
 
-    const transport = b.addModule("transport", .{ .root_source_file = b.path(BACKEND_PATH ++ "transport/root.zig") } );
-    const device = b.addModule("device", .{ .root_source_file = b.path(BACKEND_PATH ++ "device/root.zig") } );
+    const common_mod = b.addModule("Common", .{
+        .root_source_file = b.path(BACKEND_PATH ++ "Common/root.zig")
+    });
 
-    //const FrontendModules = struct {
+    const transport_mod = b.addModule("Transport", .{
+        .root_source_file = b.path(BACKEND_PATH ++ "Transport/root.zig")
+    });
+    transport_mod.addImport("Common", common_mod);
 
-    //};
-
-    //const DebuggerModules = struct {
-
-    //};
+    const device_mod = b.addModule("Device", .{
+        .root_source_file = b.path(BACKEND_PATH ++ "Device/root.zig")
+    });
+    device_mod.addImport("Common", common_mod);
 
     // ── MTKJanus backend ─────────────────────────────────────────
 
@@ -96,8 +99,9 @@ pub fn build(b: *Build) void
             .link_libc = true,
         })
     });
-    backend.root_module.addImport("transport", transport);
-    backend.root_module.addImport("device", device);
+    backend.root_module.addImport("Common", common_mod);
+    backend.root_module.addImport("Transport", transport_mod);
+    backend.root_module.addImport("Device", device_mod);
 
 
     // ── MTKJanus frontend ─────────────────────────────────────────
@@ -112,7 +116,7 @@ pub fn build(b: *Build) void
             .link_libc = true,
         })
     });
-    frontend.root_module.addImport("device", device);
+
 
     // ── MTKJanus debugger ─────────────────────────────────────────
 
@@ -136,11 +140,14 @@ pub fn build(b: *Build) void
 
     const usb_lib_install = b.addInstallArtifact(usb_lib, .{});
     const backend_install = b.addInstallArtifact(backend, .{});
+
     backend.step.dependOn(&usb_lib_install.step);
     frontend.step.dependOn(&backend_install.step);
     debugger.step.dependOn(&backend_install.step);
+
     const frontend_install = b.addInstallArtifact(frontend, .{});
     const debugger_install = b.addInstallArtifact(debugger, .{});
+
     b.default_step.dependOn(&frontend_install.step);
     b.default_step.dependOn(&debugger_install.step);
 }
