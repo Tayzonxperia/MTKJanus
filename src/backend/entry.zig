@@ -7,6 +7,7 @@ const mem = std.mem;
 const heap = std.heap;
 
 
+const Binding = @import("Binding");
 const Device = @import("Device");
 const chip = Device.chip;
 const flash = Device.flash;
@@ -16,6 +17,7 @@ pub const driver = Device.driver;
 
 
 fn generate_debug_flash_data() [96]u8 {
+
     var buf: [96]u8 = [_]u8{0} ** 96;
 
     // kind_id + block_size
@@ -95,12 +97,14 @@ fn init_flash(
     };
 }
 
-export fn testing() void
+export fn testing() callconv(.c) void
 {
     _ = chip;
     _ = flash;
     _ = driver;
 
+    const x = Binding.libusb.init() catch @panic("USB INIT FAILED");
+    _ = x;    
 
     const allocator = heap.c_allocator;
 

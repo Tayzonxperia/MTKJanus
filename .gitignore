@@ -11,6 +11,10 @@ tools/*.tmp
 tools/*.log
 
 # Junk
+log
+dev
+bak
+tmp
 *.swp
 *.vscode
 *.idea
@@ -27,7 +31,7 @@ tools/*.log
 
 # Misc
 .janus.state
-src/backend/Common/generated.zig
+src/*/Common/generated.zig
 
 # Developer
 ORIGINAL

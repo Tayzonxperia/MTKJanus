@@ -217,29 +217,28 @@ const usb_wrap_sys_device = binder.libusb_wrap_sys_device;
 // Why is it a unknown type? will this fix it... hope so ffs
 const usb_API_VERSION: u32 = @as(binder.LIBUSB_API_VERSION, u32);
 
-
-pub fn init() errors.libusb!*usb_context
+pub fn init() errors.libusb![*c]?*usb_context
 {
-    var ctx: *usb_context = null;
+    const ctx: [*c]?*usb_context = undefined;
 
-    const result = usb_init_context(&ctx, null, null);
-    if (result == null) { return errors.libusb.NotSupported; }
+    const result = usb_init_context(ctx, null, 0);
+    if (result != 0) { return errors.libusb.NotSupported; }
 
     return ctx;
 }
 
-pub fn deinit(ctx: *usb_context) void
+pub fn deinit(ctx: [*c]?*usb_context) void
 { usb_exit(ctx); }
 
-pub fn openDevice(dev: *usb_device, dev_handle: *usb_device_handle) errors.libusb!*usb_device_handle
+pub fn openDevice(dev: ?*usb_device, dev_handle: [*c]?*usb_device_handle) errors.libusb![*c]?*usb_device_handle
 {
     const result = usb_open(dev, dev_handle);
-    if (result == null) { return errors.libusb.NotFound; }
+    if (result != 0) { return errors.libusb.NotFound; }
 
     return result;
 }
 
-pub fn openDeviceWithVidPid(ctx: *usb_context, vid: u16, pid: u16) errors.libusb!*usb_device_handle
+pub fn openDeviceWithVidPid(ctx: ?*usb_context, vid: u16, pid: u16) errors.libusb![*c]?*usb_device_handle
 {
     const result = usb_open_device_with_vid_pid(ctx, vid, pid);
     if (result == null) { return errors.libusb.NotFound; }
@@ -247,5 +246,5 @@ pub fn openDeviceWithVidPid(ctx: *usb_context, vid: u16, pid: u16) errors.libusb
     return result;
 }
 
-pub fn closeDevice(dev_handle: *usb_device_handle) void
+pub fn closeDevice(dev_handle: ?*usb_device_handle) void
 { usb_close(dev_handle); }

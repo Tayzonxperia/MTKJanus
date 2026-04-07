@@ -38,7 +38,7 @@ pub const Flash = struct
         part:   flash.Partition,
     };
 
-    pub const Driver = struct {
+    pub const Dispatch = struct {
         // The VTable would go here, etc etc...
     };
 };
